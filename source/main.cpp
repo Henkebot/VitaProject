@@ -1,7 +1,3 @@
-/*
- * Copyright (c) 2015 Sergi Granell (xerpi)
- */
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -16,16 +12,13 @@
 
 #include <vita2d.h>
 
+#include <gfx.h>
+
 #include "debugScreen.h"
+#include "utility.h"
 
 const char* pfilepath = "app0:/res/sample.png";
 
-
-#define ALIGN(x,a) (((x) + ((a) -1)) & ~((a)-1))
-
-#define STRINGIFY(x) #x
-#define TOSTRING(x) STRINGIFY(x)
-#define AT __FILE__ ":" TOSTRING(__LINE__)
 
 #define printf psvDebugScreenPrintf
 
@@ -33,32 +26,57 @@ const char* pfilepath = "app0:/res/sample.png";
 
 
 
-void* cpu_alloc(unsigned int _size, SceUID* _pUid)
-{
-	void* pMem;
-
-	_size = ALIGN(_size,4*1024);
-
-	*_pUid = sceKernelAllocMemBlock("mem_alloc",SCE_KERNEL_MEMBLOCK_TYPE_USER_RW,_size,NULL);
-
-	if(*_pUid < 0)
-	{
-		PRINT_ERROR("Failed to sceKernelAllocMemBlock()");
-		return NULL;
-	}
-
-	if(sceKernelGetMemBlockBase(*_pUid,(void**)&pMem) < 0)
-	{
-		PRINT_ERROR("Failed to sceKernelGetMemBlockBase()");
-		return NULL;
-	}
-
-	return pMem;
-	
-}
-
+#include "debug.h"
+#define RGBA(r,g,b,a)((r << 24)|(g<<16)|(b<<8)|(a))
+#define FRAMEBUFFER_SIZE (2*1024*1024)
+//const unsigned int SCREEN_HEIGHT = 960;
+//const unsigned int SCREEN_WIDTH = 544;
 int main()
 {
+	// Create a debug file that we can output errors to
+	InitDebugFile();
+	PrintError("This is a fucking test\n");
+
+	// Testing Start
+	SceUID displayBlock;
+	void* pFramebuffer = NULL;
+
+	displayBlock = sceKernelAllocMemBlock("disp",SCE_KERNEL_MEMBLOCK_TYPE_USER_CDRAM_RW,FRAMEBUFFER_SIZE, NULL);
+	if(displayBlock < 0)
+		PrintError("Failed to allocate displayblock\n");
+	sceKernelGetMemBlockBase(displayBlock,(void**)&pFramebuffer);
+	SceDisplayFrameBuf frameDesc;
+	frameDesc.base 		= pFramebuffer;
+	frameDesc.height 	= SCREEN_HEIGHT;
+	frameDesc.width 	= SCREEN_WIDTH;
+	frameDesc.pitch 	= SCREEN_WIDTH;
+	frameDesc.size 		= sizeof(frameDesc);
+	frameDesc.pixelformat	= 0; 	
+	
+	int error = sceDisplaySetFrameBuf(&frameDesc,SCE_DISPLAY_SETBUF_NEXTFRAME);
+	if(error < 0)
+		PrintError("Failed To SetDisplayFrameBuf()\n");
+	if(NULL == pFramebuffer)
+		PrintError("Failed to get a ptr\n");
+
+	for(unsigned int x = 0; x < SCREEN_WIDTH;x++)
+	{
+		for(unsigned int y = 0; y < SCREEN_HEIGHT;y++)
+		{
+			unsigned int* pPixel = ((unsigned int*)pFramebuffer) + x + (y * SCREEN_WIDTH);
+			unsigned char r = x;
+			unsigned char g = y;
+			unsigned char b = x + y;
+
+			*pPixel =RGBA(255,0,0,255); 			
+		}
+	}
+	for(;;);
+return 0;
+
+	// Testing End
+	return 0;
+	gfx_init();
 	SceCtrlData pad;
 	vita2d_pgf *pgf;
 	vita2d_pvf *pvf;
