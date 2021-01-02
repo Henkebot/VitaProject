@@ -1,16 +1,10 @@
-#ifndef DEBUG_SCREEN_H
-#define DEBUG_SCREEN_H
-
+#pragma once
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <inttypes.h>
 
-typedef struct PsvDebugScreenFont {
-	unsigned char* glyphs, width, height, first, last, size_w, size_h;
-} PsvDebugScreenFont;
-
-#include <debugScreenFont.c>
+#include <debugScreenFont.cpp>
 
 #define SCREEN_WIDTH    (960)
 #define SCREEN_HEIGHT   (544)
@@ -173,4 +167,3 @@ void psvDebugScreenSetBgColor(uint32_t rgb){
 	psvDebugScreenPrintf("\e[48;2;%lu;%lu;%lum", (rgb>>16)&0xFF, (rgb>>8)&0xFF, rgb&0xFF);
 }
 #undef F
-#endif

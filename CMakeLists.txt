@@ -50,7 +50,10 @@ link_directories(
 ## Build and link
 # Add all the files needed to compile here
 add_executable(${PROJECT_NAME}
-  src/main.c
+  source/main.cpp
+  source/debug.h
+  source/debug.cpp
+  common/debugScreen.h
 )
 
 # Library to link to (drop the -l prefix). This will mostly be stubs.
